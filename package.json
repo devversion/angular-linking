@@ -1,5 +1,5 @@
 {
-  "name": "@devinfra/angular-linking",
+  "name": "@nginfra/angular-linking",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@babel/core": "7.26.10",
     "tinyglobby": "0.2.12"
