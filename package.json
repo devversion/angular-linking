@@ -1,6 +1,6 @@
 {
   "name": "@nginfra/angular-linking",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -15,5 +15,8 @@
   },
   "peerDependencies": {
     "@angular/compiler-cli": "*"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3"
   }
 }
