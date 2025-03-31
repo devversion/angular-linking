@@ -38,12 +38,15 @@ async function main() {
         "No `package.json` `exports` for package. Cannot link Angular code",
       );
 
-      for (const conditions of Object.values(packageJson.exports)) {
+      for (const [subpath, conditions] of Object.entries(packageJson.exports)) {
         const defaultCondition = conditions.default;
         if (!defaultCondition || !/fesm2022/.test(defaultCondition)) {
           continue;
         }
-        conditions["ng-linked"] = `${defaultCondition}.linked.js`;
+        packageJson.exports[subpath] = {
+          "ng-linked": `${defaultCondition}.linked.js`,
+          ...conditions,
+        };
       }
 
       await writeFile("package.json", JSON.stringify(packageJson, null, 2));
