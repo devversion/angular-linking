@@ -50,13 +50,17 @@ async function main() {
       }
 
       // Also update side effects to include the new linked bundles
-      const sideEffects = packageJson.exports.sideEffects;
+      const sideEffects = packageJson.sideEffects;
       if (sideEffects !== undefined && Array.isArray(sideEffects)) {
+        const newSideEffects = [...sideEffects];
+
         for (const pattern in sideEffects) {
           if (!pattern.includes("*") && pattern.startsWith("./fesm2022/")) {
-            sideEffects.push(`${pattern}.linked.mjs`);
+            newSideEffects.push(`${pattern}.linked.mjs`);
           }
         }
+
+        packageJson.sideEffects = newSideEffects;
       }
 
       await writeFile("package.json", JSON.stringify(packageJson, null, 2));
