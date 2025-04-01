@@ -54,7 +54,7 @@ async function main() {
       if (sideEffects !== undefined && Array.isArray(sideEffects)) {
         const newSideEffects = [...sideEffects];
 
-        for (const pattern in sideEffects) {
+        for (const pattern of sideEffects) {
           if (!pattern.includes("*") && pattern.startsWith("./fesm2022/")) {
             newSideEffects.push(`${pattern}.linked.mjs`);
           }
