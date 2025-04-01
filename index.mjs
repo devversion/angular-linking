@@ -23,7 +23,7 @@ async function main() {
           filename: bundleFile,
         });
 
-        await writeFile(`${bundleFile}.linked.js`, result.code);
+        await writeFile(`${bundleFile}.linked.mjs`, result.code);
       })(),
     );
   }
@@ -44,9 +44,19 @@ async function main() {
           continue;
         }
         packageJson.exports[subpath] = {
-          "ng-linked": `${defaultCondition}.linked.js`,
+          "ng-linked": `${defaultCondition}.linked.mjs`,
           ...conditions,
         };
+      }
+
+      // Also update side effects to include the new linked bundles
+      const sideEffects = packageJson.exports.sideEffects;
+      if (sideEffects !== undefined && Array.isArray(sideEffects)) {
+        for (const pattern in sideEffects) {
+          if (!pattern.includes("*") && pattern.startsWith("./fesm2022/")) {
+            sideEffects.push(`${pattern}.linked.mjs`);
+          }
+        }
       }
 
       await writeFile("package.json", JSON.stringify(packageJson, null, 2));
