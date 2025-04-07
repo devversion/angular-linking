@@ -1,15 +1,19 @@
 import linkerBabelPlugin from "@angular/compiler-cli/linker/babel";
-import { transformAsync } from "@babel/core";
+import * as babel from "@babel/core";
 import assert from "node:assert";
 import { readFile, writeFile } from "node:fs/promises";
 import { globSync } from "tinyglobby";
 
+interface PackageJson {
+  exports?: Record<string, Record<string, string>>;
+  sideEffects?: boolean | string[];
+}
+
 async function main() {
   const fesmBundles = globSync("fesm2022/**/*.mjs");
   const tasks = [];
-  /** @type {import('@babel/core').TransformOptions} */
-  const babelOptions = {
-    plugins: [[linkerBabelPlugin, {}]],
+  const babelOptions: babel.PluginOptions = {
+    plugins: [[linkerBabelPlugin, {}], [importPlugin()]],
     configFile: false,
     babelrc: false,
   };
@@ -18,7 +22,7 @@ async function main() {
     tasks.push(
       (async () => {
         const content = await readFile(bundleFile, "utf8");
-        const result = await transformAsync(content, {
+        const result = await babel.transformAsync(content, {
           ...babelOptions,
           filename: bundleFile,
         });
@@ -31,7 +35,7 @@ async function main() {
   tasks.push(
     (async () => {
       const packageJsonRaw = await readFile("package.json", "utf8");
-      const packageJson = JSON.parse(packageJsonRaw);
+      const packageJson = JSON.parse(packageJsonRaw) as PackageJson;
 
       assert(
         packageJson.exports,
@@ -69,6 +73,34 @@ async function main() {
 
   await Promise.all(tasks);
 }
+
+const importPlugin: () => babel.PluginObj = () => {
+  return {
+    visitor: {
+      ImportDeclaration(path) {
+        if (!path.node.source.value.startsWith(".")) {
+          return;
+        }
+        // Relative imports should also point to their linked variants.
+        path.node.source.value = `${path.node.source.value}.linked.mjs`;
+      },
+      ExportNamedDeclaration(path) {
+        if (!path.node.source || !path.node.source.value.startsWith(".")) {
+          return;
+        }
+        // Relative exports should also point to their linked variants.
+        path.node.source.value = `${path.node.source.value}.linked.mjs`;
+      },
+      ExportAllDeclaration(path) {
+        if (!path.node.source.value.startsWith(".")) {
+          return;
+        }
+        // Relative exports should also point to their linked variants.
+        path.node.source.value = `${path.node.source.value}.linked.mjs`;
+      },
+    },
+  };
+};
 
 main().catch((e) => {
   console.error(e);
