@@ -1,3 +1,4 @@
+import { LinkerOptions } from "@angular/compiler-cli/linker";
 import linkerBabelPlugin from "@angular/compiler-cli/linker/babel";
 import * as babel from "@babel/core";
 import assert from "node:assert";
@@ -13,7 +14,16 @@ async function main() {
   const fesmBundles = globSync("fesm2022/**/*.mjs");
   const tasks = [];
   const babelOptions: babel.PluginOptions = {
-    plugins: [[linkerBabelPlugin, {}], [importPlugin()]],
+    plugins: [
+      [
+        linkerBabelPlugin,
+        {
+          unknownDeclarationVersionHandling:
+            process.env["LINKER_UNKNOWN_DECLARATION_VERSION_HANDLING"],
+        } as LinkerOptions,
+      ],
+      [importPlugin()],
+    ],
     configFile: false,
     babelrc: false,
   };
