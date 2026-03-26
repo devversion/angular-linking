@@ -85,29 +85,24 @@ async function main() {
 }
 
 const importPlugin: () => babel.PluginObj = () => {
+  const visitor = (
+    path: babel.NodePath<
+      | babel.types.ImportDeclaration
+      | babel.types.ExportNamedDeclaration
+      | babel.types.ExportAllDeclaration
+    >,
+  ) => {
+    const nodeValue = path.node.source?.value;
+    if (nodeValue && nodeValue[0] === "." && nodeValue[1] !== ".") {
+      path.node.source.value = `${nodeValue}.linked.mjs`;
+    }
+  };
+
   return {
     visitor: {
-      ImportDeclaration(path) {
-        if (!path.node.source.value.startsWith(".")) {
-          return;
-        }
-        // Relative imports should also point to their linked variants.
-        path.node.source.value = `${path.node.source.value}.linked.mjs`;
-      },
-      ExportNamedDeclaration(path) {
-        if (!path.node.source || !path.node.source.value.startsWith(".")) {
-          return;
-        }
-        // Relative exports should also point to their linked variants.
-        path.node.source.value = `${path.node.source.value}.linked.mjs`;
-      },
-      ExportAllDeclaration(path) {
-        if (!path.node.source.value.startsWith(".")) {
-          return;
-        }
-        // Relative exports should also point to their linked variants.
-        path.node.source.value = `${path.node.source.value}.linked.mjs`;
-      },
+      ImportDeclaration: visitor,
+      ExportNamedDeclaration: visitor,
+      ExportAllDeclaration: visitor,
     },
   };
 };
